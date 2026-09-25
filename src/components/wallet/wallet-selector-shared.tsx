@@ -307,7 +307,7 @@ export function ConnectedWalletCard({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-foreground">
-          Connected &#x2713; {name}
+          Connected &#x2713; <span>{name}</span>
         </p>
         <p className="text-xs text-muted-foreground font-mono truncate">
           {address ? address : ""}

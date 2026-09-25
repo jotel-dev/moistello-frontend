@@ -15,6 +15,7 @@ interface PageHeaderProps {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  backButton?: React.ReactNode;
   breadcrumbs?: Breadcrumb[];
 }
 
@@ -22,6 +23,7 @@ export function PageHeader({
   title,
   description,
   action,
+  backButton,
   breadcrumbs,
 }: PageHeaderProps) {
   return (
@@ -32,6 +34,7 @@ export function PageHeader({
       className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8"
     >
       <div className="min-w-0">
+        {backButton && <div className="mb-3">{backButton}</div>}
         {/* Breadcrumbs */}
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav className="flex items-center gap-1.5 mb-3">

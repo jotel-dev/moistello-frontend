@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/auth/session-cookies";
 
-// In-memory rate limiting map for name claims: IP -> timestamps[]
-const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const MAX_CLAIMS_PER_WINDOW = 5;
+import { rateLimitMap, RATE_LIMIT_WINDOW_MS, MAX_CLAIMS_PER_WINDOW, claimedNames } from "./state";
 
-// In-memory claimed names store: canonicalName -> { userId: string, claimedAt: number }
-const claimedNames = new Map<string, { userId: string; claimedAt: number }>();
-
-export function sanitizeAndCanonicalizeName(name: string): string | null {
+function sanitizeAndCanonicalizeName(name: string): string | null {
   if (typeof name !== "string") return null;
   const trimmed = name.trim().toLowerCase();
   // Name rules: 3-30 characters, alphanumeric, underscores, hyphens
@@ -19,7 +13,7 @@ export function sanitizeAndCanonicalizeName(name: string): string | null {
   return trimmed;
 }
 
-export async function getServerSession(request: NextRequest): Promise<{ user: { id: string } } | null> {
+async function getServerSession(request: NextRequest): Promise<{ user: { id: string } } | null> {
   const authHeader = request.headers.get("authorization");
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.replace("Bearer ", "").trim();
@@ -124,10 +118,4 @@ export async function POST(request: NextRequest) {
     },
     { status: 201 }
   );
-}
-
-// Reset helper for unit testing
-export function _resetClaimNameState() {
-  rateLimitMap.clear();
-  claimedNames.clear();
 }

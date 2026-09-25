@@ -20,6 +20,10 @@ function okResponse(body: object) {
   })
 }
 
+function mockOkResponse(body: object) {
+  return () => Promise.resolve(okResponse(body))
+}
+
 function _errResponse(status: number) {
   return new Response("error", { status })
 }
@@ -40,7 +44,7 @@ describe("single-flight dedup", () => {
   it("concurrent calls for same address share one fetch", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(okResponse({ xlm: "10", usdc: "5" }))
+      .mockImplementation(mockOkResponse({ xlm: "10", usdc: "5" }))
 
     const promises = Promise.all([
       fetchBalanceWithBackoff(ADDR, { initialDelayMs: 1 }),
@@ -59,7 +63,7 @@ describe("single-flight dedup", () => {
   it("different addresses each get their own fetch", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(okResponse({ xlm: "1", usdc: "1" }))
+      .mockImplementation(mockOkResponse({ xlm: "1", usdc: "1" }))
 
     const promises = Promise.all([
       fetchBalanceWithBackoff(ADDR, { initialDelayMs: 1 }),
@@ -74,7 +78,7 @@ describe("single-flight dedup", () => {
   it("forceRefresh bypasses dedup and fires a new request", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(okResponse({ xlm: "1", usdc: "1" }))
+      .mockImplementation(mockOkResponse({ xlm: "1", usdc: "1" }))
 
     const p1 = fetchBalanceWithBackoff(ADDR, { initialDelayMs: 1 })
     const p2 = fetchBalanceWithBackoff(ADDR, { forceRefresh: true, initialDelayMs: 1 })
@@ -92,13 +96,9 @@ describe("circuit breaker", () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"))
 
     for (let i = 0; i < CIRCUIT_BREAKER_THRESHOLD; i++) {
-      try {
-        const p = fetchBalanceWithBackoff(ADDR, { maxRetries: 0, initialDelayMs: 1 })
-        await vi.runAllTimersAsync()
-        await p
-      } catch {
-        // expected
-      }
+      await expect(
+        fetchBalanceWithBackoff(ADDR, { maxRetries: 0, initialDelayMs: 1 }),
+      ).rejects.toThrow()
     }
 
     const state = getCircuitState(ADDR)
@@ -119,13 +119,9 @@ describe("circuit breaker", () => {
     // Now open the circuit by hammering failures
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"))
     for (let i = 0; i < CIRCUIT_BREAKER_THRESHOLD; i++) {
-      try {
-        const p = fetchBalanceWithBackoff(ADDR, { forceRefresh: true, maxRetries: 0, initialDelayMs: 1 })
-        await vi.runAllTimersAsync()
-        await p
-      } catch {
-        // expected
-      }
+      await expect(
+        fetchBalanceWithBackoff(ADDR, { forceRefresh: true, maxRetries: 0, initialDelayMs: 1 }),
+      ).rejects.toThrow()
     }
 
     expect(getCircuitState(ADDR).openedAt).not.toBeNull()
@@ -141,13 +137,9 @@ describe("circuit breaker", () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"))
 
     for (let i = 0; i < CIRCUIT_BREAKER_THRESHOLD; i++) {
-      try {
-        const p = fetchBalanceWithBackoff(ADDR, { maxRetries: 0, initialDelayMs: 1 })
-        await vi.runAllTimersAsync()
-        await p
-      } catch {
-        // expected
-      }
+      await expect(
+        fetchBalanceWithBackoff(ADDR, { maxRetries: 0, initialDelayMs: 1 }),
+      ).rejects.toThrow()
     }
 
     expect(getCircuitState(ADDR).openedAt).not.toBeNull()
@@ -158,13 +150,9 @@ describe("circuit breaker", () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"))
 
     for (let i = 0; i < CIRCUIT_BREAKER_THRESHOLD; i++) {
-      try {
-        const p = fetchBalanceWithBackoff(ADDR, { maxRetries: 0, initialDelayMs: 1 })
-        await vi.runAllTimersAsync()
-        await p
-      } catch {
-        /* expected */
-      }
+      await expect(
+        fetchBalanceWithBackoff(ADDR, { maxRetries: 0, initialDelayMs: 1 }),
+      ).rejects.toThrow()
     }
 
     // Advance past reset window
@@ -186,13 +174,11 @@ describe("MAX_RETRIES_CAP", () => {
   it("caps retries to MAX_RETRIES_CAP even if higher value is passed", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"))
 
-    try {
-      const p = fetchBalanceWithBackoff(ADDR, { maxRetries: 100, initialDelayMs: 1 })
-      await vi.runAllTimersAsync()
-      await p
-    } catch {
-      /* expected */
+    const p = fetchBalanceWithBackoff(ADDR, { maxRetries: 100, initialDelayMs: 1 }).catch(() => {})
+    for (let i = 0; i <= MAX_RETRIES_CAP + 2; i++) {
+      await vi.advanceTimersByTimeAsync(10000)
     }
+    await p
 
     // Attempts = 0..MAX_RETRIES_CAP = MAX_RETRIES_CAP + 1 calls max
     expect(fetchSpy.mock.calls.length).toBeLessThanOrEqual(MAX_RETRIES_CAP + 1)
@@ -219,7 +205,7 @@ describe("cache TTL", () => {
   it("returns cached value within TTL without calling fetch again", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(okResponse({ xlm: "100", usdc: "50" }))
+      .mockImplementation(mockOkResponse({ xlm: "100", usdc: "50" }))
 
     const p1 = fetchBalanceWithBackoff(ADDR)
     await vi.runAllTimersAsync()
@@ -233,7 +219,7 @@ describe("cache TTL", () => {
   it("re-fetches after TTL expires", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(okResponse({ xlm: "100", usdc: "50" }))
+      .mockImplementation(mockOkResponse({ xlm: "100", usdc: "50" }))
 
     const p1 = fetchBalanceWithBackoff(ADDR)
     await vi.runAllTimersAsync()

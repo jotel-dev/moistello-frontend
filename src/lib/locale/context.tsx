@@ -16,7 +16,7 @@ interface LocaleContextType {
   locale: string
   isRtl: boolean
   setLocale: (lang: string) => void
-  t: (key: string) => string
+  t: (key: string, fallback?: string) => string
   /** Locale code that failed to load; English is being served instead. Null when healthy. */
   fallbackLocale: string | null
   /** Re-attempt loading a locale that previously failed. */
@@ -29,7 +29,7 @@ const LocaleContext = createContext<LocaleContextType>({
   locale: "en",
   isRtl: false,
   setLocale: () => {},
-  t: (key: string) => key,
+  t: (key: string, fallback?: string) => fallback ?? key,
   fallbackLocale: null,
   retryLocale: () => {},
   dismissFallbackNotice: () => {},
@@ -172,9 +172,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const dismissFallbackNotice = useCallback(() => setFallbackLocale(null), [])
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, fallback?: string): string => {
       if (dict && key in dict) return dict[key]
-      return EN_SEED[key] ?? key
+      return fallback ?? EN_SEED[key] ?? key
     },
     [dict],
   )

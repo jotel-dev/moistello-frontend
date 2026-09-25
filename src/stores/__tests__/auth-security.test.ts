@@ -95,7 +95,7 @@ describe("Auth Security - Token Storage", () => {
       expect(tokenKeys).toHaveLength(0);
     });
 
-    it("should clear legacy token storage on init", () => {
+    it("should clear legacy token storage on init", async () => {
       // Simulate legacy tokens in storage
       localStorage.setItem("moistello_token", "legacy-token");
       localStorage.setItem("moistello_refresh", "legacy-refresh");
@@ -103,7 +103,7 @@ describe("Auth Security - Token Storage", () => {
 
       // Re-import to trigger cleanup
       vi.resetModules();
-      import("../auth-store");
+      await import("../auth-store");
 
       // Legacy keys should be removed
       expect(localStorage.getItem("moistello_token")).toBeNull();
@@ -119,6 +119,9 @@ describe("Auth Security - Token Storage", () => {
         walletAddress: "GACCOUNT123",
         displayName: "Test User",
         email: "test@example.com",
+        preferredLanguage: "en",
+        moiScore: 100,
+        createdAt: new Date().toISOString(),
       };
 
       await store.setTokens("access-token", "refresh-token", mockUser);
@@ -156,6 +159,9 @@ describe("Auth Security - Token Storage", () => {
         id: "user-123",
         walletAddress: "GACCOUNT123",
         displayName: "Victim",
+        preferredLanguage: "en",
+        moiScore: 100,
+        createdAt: new Date().toISOString(),
       };
 
       await authStore.setTokens(

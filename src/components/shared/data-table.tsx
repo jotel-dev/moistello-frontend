@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 
 export interface DataTableColumn<T> {
   id: string
+  key?: string
   header: ReactNode
   accessor?: (row: T) => unknown
   cell?: (row: T) => ReactNode

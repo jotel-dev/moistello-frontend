@@ -6,7 +6,7 @@ import { PiggyBank } from "lucide-react"
 import { useTranslate } from "@/lib/locale/context"
 
 interface ProfileSavingsProps {
-  savingsSummary: Record<string, unknown> | null
+  savingsSummary: Record<string, unknown> | null | undefined
   variants?: any
 }
 

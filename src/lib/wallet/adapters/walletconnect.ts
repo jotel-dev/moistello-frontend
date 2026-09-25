@@ -38,6 +38,8 @@ import { validateStellarAddress } from "@/lib/stellar/validate-address"
 
 let signClientInstance: any = null
 let initPromise: Promise<any> | null = null
+let currentPublicKey: string | null = null
+let currentSession: any = null
 
 async function getOrInitSignClient(): Promise<any> {
   if (signClientInstance) return signClientInstance
@@ -146,6 +148,24 @@ export function resetWcState(): void {
   abortConnect()
 }
 
+export async function disconnectWc(): Promise<void> {
+  abortConnect()
+  try {
+    if (currentSession) {
+      const client = await getOrInitSignClient()
+      await client.disconnect({
+        topic: currentSession.topic,
+        reason: { code: 6000, message: "User disconnected" },
+      })
+    }
+  } catch (e) {
+    console.warn("[walletconnect] Disconnect cleanup warning:", e)
+  }
+  currentPublicKey = null
+  currentSession = null
+  getWC2SessionStore().clear()
+}
+
 /**
  * Legacy adapter for the wallet-selector component.
  * The component can subscribe to pairing URI events by passing a function:
@@ -178,9 +198,6 @@ export function createWalletConnectAdapter(): WalletAdapter & {
   getPairingState: () => string
   getPairingError: () => string | null
 } {
-  let currentPublicKey: string | null = null
-  let currentSession: any = null
-
   const meta: WalletAdapterMeta = {
     id: "walletconnect",
     name: "WalletConnect",
@@ -189,6 +206,7 @@ export function createWalletConnectAdapter(): WalletAdapter & {
     description:
       "Connect with Lobstr, xBull, and 200+ mobile Stellar wallets",
     icon: "/icons/walletconnect.svg",
+    installUrl: "https://walletconnect.com",
     isAvailable: () => typeof window !== "undefined",
   }
 
@@ -200,7 +218,8 @@ export function createWalletConnectAdapter(): WalletAdapter & {
     getPairingState: () => _currentContext?.state ?? "idle",
     getPairingError: () => _currentContext?.error ?? null,
 
-    async connect(options?: ConnectOptions) {
+    async connect(options?: string | ConnectOptions) {
+      const opts = typeof options === "string" ? { email: options } : options
       const relay = getRelayMonitor()
       if (relay.isDownForConnect) {
         const err = new Error(
@@ -259,7 +278,7 @@ export function createWalletConnectAdapter(): WalletAdapter & {
                 "stellar_signMessage",
               ],
               chains: [
-                options?.network === "public"
+                opts?.network === "public"
                   ? "stellar:public"
                   : "stellar:testnet",
               ],
@@ -282,7 +301,7 @@ export function createWalletConnectAdapter(): WalletAdapter & {
         ctx.uri = uri
         ctx.state = "awaiting_approval"
         notifyContextChange()
-        options?.onUri?.(uri)
+        opts?.onUri?.(uri)
 
         // ── Race approval against abort ───────────────────────────────────
         const session = await Promise.race([
@@ -348,26 +367,7 @@ export function createWalletConnectAdapter(): WalletAdapter & {
     },
 
     async disconnect() {
-      // Cancel any pending connect for this adapter instance.
-      abortConnect()
-
-      try {
-        if (currentSession) {
-          const client = await getOrInitSignClient()
-          await client.disconnect({
-            topic: currentSession.topic,
-            reason: { code: 6000, message: "User disconnected" },
-          })
-        }
-      } catch (e) {
-        console.warn("[walletconnect] Disconnect cleanup warning:", e)
-      }
-
-      currentPublicKey = null
-      currentSession = null
-
-      // Clear persisted session without nuking all IndexedDB stores.
-      getWC2SessionStore().clear()
+      await disconnectWc()
     },
 
     async isConnected() {
@@ -384,7 +384,7 @@ export function createWalletConnectAdapter(): WalletAdapter & {
     async signTransaction(xdr: string) {
       if (!currentPublicKey || !currentSession) {
         throw {
-          code: "not_connected",
+          code: "not_installed",
           message: "Not connected to WalletConnect",
           adapter: "walletconnect",
         }

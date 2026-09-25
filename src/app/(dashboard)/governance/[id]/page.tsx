@@ -19,9 +19,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
 import { useGovernanceProposal, useVoteOnProposal } from "@/hooks/use-governance"
+import { useUIStore } from "@/stores/ui-store"
 
 export default function ProposalDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const addToast = useUIStore((s) => s.addToast)
 
   const [voteChoice, setVoteChoice] = useState<boolean | "abstain" | null>(null)
   const [voteReason, setVoteReason] = useState("")

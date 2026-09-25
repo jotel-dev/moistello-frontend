@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { filterTransactions, type TxItem } from "../page"
+import { filterTransactions, type TxItem } from "../filters"
 
 const mockTransactions: TxItem[] = [
   {
@@ -56,7 +56,7 @@ describe("filterTransactions", () => {
       search: "",
     }, now)
     expect(sentOnly.length).toBe(2)
-    expect(sentOnly.every((t) => t.type === "sent")).toBe(true)
+    expect(sentOnly.every((t: TxItem) => t.type === "sent")).toBe(true)
 
     const receivedOnly = filterTransactions(mockTransactions, {
       type: "received",
@@ -120,6 +120,6 @@ describe("filterTransactions", () => {
       search: "",
     }, now)
     expect(recent.length).toBe(2)
-    expect(recent.map((t) => t.id)).toEqual(["tx-3", "tx-1"])
+    expect(recent.map((t: TxItem) => t.id)).toEqual(["tx-3", "tx-1"])
   })
 })

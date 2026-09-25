@@ -23,7 +23,21 @@ export class WCRelayMonitor {
     return this._status
   }
 
-  recordOutcome(success: boolean, latencyMs: number): void {
+  recordOutcome(
+    actionOrSuccess: string | boolean,
+    successOrLatency: boolean | number = 100,
+    maybeLatency = 100,
+  ): void {
+    let success: boolean
+    let latencyMs: number
+    if (typeof actionOrSuccess === "string") {
+      success = Boolean(successOrLatency)
+      latencyMs = typeof maybeLatency === "number" ? maybeLatency : 100
+    } else {
+      success = Boolean(actionOrSuccess)
+      latencyMs = typeof successOrLatency === "number" ? successOrLatency : 100
+    }
+
     this.window.push({ success, latencyMs })
     if (this.window.length > WINDOW_SIZE) {
       this.window.shift()

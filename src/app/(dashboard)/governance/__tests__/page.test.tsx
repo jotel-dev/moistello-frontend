@@ -45,7 +45,7 @@ describe("GovernancePage", () => {
     const searchInput = screen.getByTestId("governance-search-input")
     fireEvent.change(searchInput, { target: { value: "Collateral" } })
 
-    expect(screen.getByText(/MIP-14: Lower Circle Collateral Requirement/i)).toBeDefined()
+    expect(await screen.findByText(/MIP-14: Lower Circle Collateral Requirement/i)).toBeDefined()
   })
 
   it("shows empty state when no proposals match search criteria", async () => {
@@ -59,7 +59,7 @@ describe("GovernancePage", () => {
     const searchInput = screen.getByTestId("governance-search-input")
     fireEvent.change(searchInput, { target: { value: "NonExistentProposalTitle9999" } })
 
-    expect(screen.getByTestId("governance-empty-state")).toBeDefined()
-    expect(screen.getByText("No proposals found")).toBeDefined()
+    expect(await screen.findByTestId("governance-empty-state")).toBeDefined()
+    expect(await screen.findByText("No proposals found")).toBeDefined()
   })
 })

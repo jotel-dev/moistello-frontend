@@ -26,11 +26,15 @@ export function formatCurrency(
     return `${amount.toLocaleString(locale, { maximumFractionDigits: 4 })} XLM`
   }
 
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    currencyDisplay: "symbol",
-  }).format(amount)
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+    }).format(amount)
+  } catch {
+    return `${amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`
+  }
 }
 
 /**
@@ -43,6 +47,7 @@ export function formatDate(
   locale: string = DEFAULT_LOCALE
 ): string {
   const d = typeof date === "string" ? new Date(date) : date
+  if (isInvalidDate(d)) return "Invalid Date"
 
   const defaults: Intl.DateTimeFormatOptions = {
     year: "numeric",
@@ -78,9 +83,9 @@ export function formatRelativeTime(
   }
 }
 
-export function formatAddress(address: string): string {
+export function formatAddress(address: string, start = 6, end = 4): string {
   if (!address) return ""
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
+  return `${address.slice(0, start)}...${address.slice(-end)}`
 }
 
 /**
@@ -117,3 +122,27 @@ export function formatDuration(minutes: number): string {
   }
   return `${days}d ${remainingHours}h`
 }
+
+export function formatRelativeTimeLocalized(
+  date: string | Date,
+  locale?: Locale
+): string {
+  const d = typeof date === "string" ? new Date(date) : date
+  try {
+    if (isInvalidDate(d)) return formatDateLocalized(d)
+    return formatDistanceToNow(d, {
+      addSuffix: true,
+      ...(locale ? { locale } : {}),
+    })
+  } catch {
+    return formatDateLocalized(d)
+  }
+}
+
+export function formatDateLocalized(
+  date: string | Date,
+  locale: string = DEFAULT_LOCALE,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  return formatDate(date, options, locale);
+}

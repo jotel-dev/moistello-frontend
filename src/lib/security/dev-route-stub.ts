@@ -12,7 +12,7 @@
  */
 import { NextResponse } from "next/server";
 
-function notFound() {
+function notFound(_req?: unknown) {
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
 

@@ -13,16 +13,7 @@ import type { ApiResponse } from "@/types"
 import { cn } from "@/lib/cn"
 import { formatAddress } from "@/lib/formatters"
 
-interface TxItem {
-  id: string
-  type: "sent" | "received"
-  amount: number
-  description: string
-  createdAt: string
-  txnHash?: string
-  source: "contribution" | "payout"
-  status?: "completed" | "pending" | "failed"
-}
+import { TxItem, FilterOptions, filterTransactions } from "./filters"
 
 const PAGE_SIZE = 15
 
@@ -76,37 +67,13 @@ export default function TransactionsPage() {
   })
 
   const filteredTxns = useMemo(() => {
-    return txns.filter((tx) => {
-      // Search query
-      if (search.trim()) {
-        const q = search.toLowerCase()
-        const matchesId = tx.id.toLowerCase().includes(q)
-        const matchesDesc = tx.description.toLowerCase().includes(q)
-        const matchesHash = tx.txnHash?.toLowerCase().includes(q) ?? false
-        if (!matchesId && !matchesDesc && !matchesHash) return false
-      }
-
-      // Type filter
-      if (typeFilter !== "all" && tx.type !== typeFilter) return false
-
-      // Status filter
-      if (statusFilter !== "all" && (tx.status ?? "completed") !== statusFilter) return false
-
-      // Amount filters
-      if (minAmount !== "" && !isNaN(Number(minAmount)) && tx.amount < Number(minAmount)) return false
-      if (maxAmount !== "" && !isNaN(Number(maxAmount)) && tx.amount > Number(maxAmount)) return false
-
-      // Date filters
-      if (dateFilter !== "all") {
-        const txDate = new Date(tx.createdAt).getTime()
-        const now = Date.now()
-        const diffDays = (now - txDate) / (1000 * 60 * 60 * 24)
-        if (dateFilter === "7d" && diffDays > 7) return false
-        if (dateFilter === "30d" && diffDays > 30) return false
-        if (dateFilter === "90d" && diffDays > 90) return false
-      }
-
-      return true
+    return filterTransactions(txns, {
+      search,
+      type: typeFilter,
+      status: statusFilter,
+      dateRange: dateFilter,
+      minAmount,
+      maxAmount,
     })
   }, [txns, search, typeFilter, statusFilter, dateFilter, minAmount, maxAmount])
 
@@ -118,7 +85,7 @@ export default function TransactionsPage() {
 
   const columns: DataTableColumn<TxItem>[] = [
     {
-      key: "type",
+      id: "type",
       header: "Type",
       cell: (tx) => (
         <div className="flex items-center gap-2">
@@ -132,7 +99,7 @@ export default function TransactionsPage() {
       ),
     },
     {
-      key: "description",
+      id: "description",
       header: "Description",
       cell: (tx) => (
         <div>
@@ -142,7 +109,7 @@ export default function TransactionsPage() {
       ),
     },
     {
-      key: "amount",
+      id: "amount",
       header: "Amount",
       cell: (tx) => (
         <span className={cn("font-semibold", tx.type === "sent" ? "text-red-600" : "text-green-600")}>
@@ -151,7 +118,7 @@ export default function TransactionsPage() {
       ),
     },
     {
-      key: "status",
+      id: "status",
       header: "Status",
       cell: (tx) => {
         const st = tx.status ?? "completed"
@@ -170,7 +137,7 @@ export default function TransactionsPage() {
       },
     },
     {
-      key: "createdAt",
+      id: "createdAt",
       header: "Date",
       cell: (tx) => (
         <span className="text-sm text-muted-foreground">
@@ -179,7 +146,7 @@ export default function TransactionsPage() {
       ),
     },
     {
-      key: "actions",
+      id: "actions",
       header: "",
       cell: (tx) => (
         <Link
@@ -322,7 +289,7 @@ export default function TransactionsPage() {
         />
       ) : (
         <div className="space-y-4">
-          <DataTable columns={columns} data={paginatedTxns} />
+          <DataTable columns={columns} data={paginatedTxns} getRowId={(tx) => tx.id} />
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-2">

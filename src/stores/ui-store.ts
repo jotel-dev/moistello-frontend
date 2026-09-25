@@ -22,6 +22,7 @@ interface UIState {
   density: Density;
   fontSize: FontSize;
   sidebarOpen: boolean;
+  activeModal?: string | null;
   toasts: Toast[];
 }
 
@@ -67,6 +68,7 @@ export const useUIStore = create<UIStore>()(
       density: "comfortable",
       fontSize: "medium",
       sidebarOpen: false,
+      activeModal: null,
       toasts: [],
 
       toggleTheme: () => {

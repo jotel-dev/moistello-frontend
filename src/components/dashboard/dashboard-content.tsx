@@ -18,32 +18,32 @@ export function DashboardContent() {
   const circlesQuery = useQuery({
     queryKey: ['dashboard', 'circles'],
     queryFn: async () => {
-      const res = await get<{ circles: Circle[] }>('/api/circles')
-      return res.data?.circles || []
+      const res = await get<{ circles?: Circle[]; data?: { circles?: Circle[] } }>('/api/circles')
+      return res?.circles || res?.data?.circles || []
     },
   })
 
   const contributionsQuery = useQuery({
     queryKey: ['dashboard', 'contributions'],
     queryFn: async () => {
-      const res = await get<{ contributions: Contribution[] }>('/api/contributions')
-      return res.data?.contributions || []
+      const res = await get<{ contributions?: Contribution[]; data?: { contributions?: Contribution[] } }>('/api/contributions')
+      return res?.contributions || res?.data?.contributions || []
     },
   })
 
   const payoutsQuery = useQuery({
     queryKey: ['dashboard', 'payouts'],
     queryFn: async () => {
-      const res = await get<{ payouts: Payout[] }>('/api/payouts')
-      return res.data?.payouts || []
+      const res = await get<{ payouts?: Payout[]; data?: { payouts?: Payout[] } }>('/api/payouts')
+      return res?.payouts || res?.data?.payouts || []
     },
   })
 
-  const circles = circlesQuery.data || []
-  const contributions = contributionsQuery.data || []
-  const payouts = payoutsQuery.data || []
+  const circles: Circle[] = circlesQuery.data || []
+  const contributions: Contribution[] = contributionsQuery.data || []
+  const payouts: Payout[] = payoutsQuery.data || []
 
-  const mockSavingsGoals = circles.map((c) => ({
+  const mockSavingsGoals = circles.map((c: Circle) => ({
     id: c.id,
     name: c.name,
     targetAmount: c.contributionAmount * c.maxMembers,
@@ -84,3 +84,5 @@ export function DashboardContent() {
     </div>
   )
 }
+
+export default DashboardContent

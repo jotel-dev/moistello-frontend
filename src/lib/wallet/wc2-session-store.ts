@@ -1,5 +1,4 @@
 import type { NetworkType } from "./types"
-import { computeHmacSha256Sync } from "./hmac"
 import { SESSION_TTL_MS } from "./session-lifecycle"
 import { computeHmacSha256Sync, isHmacKeyReady, withHmacKey } from "./hmac"
 

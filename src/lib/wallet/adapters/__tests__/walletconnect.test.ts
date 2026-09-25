@@ -155,7 +155,7 @@ describe("WalletConnect Adapter", () => {
     it("connect does not throw synchronously when relay is flagged down", async () => {
       mockRelay.status = "down"
       let promise: Promise<unknown> | undefined
-      expect(() => { promise = adapter.connect() }).not.toThrow()
+      expect(() => { promise = adapter.connect(); promise?.catch(() => {}) }).not.toThrow()
       expect(promise).toBeInstanceOf(Promise)
       // Wait for connect() async body to set _pendingReject (via
       // getOrInitSignClient resolving the mocked SignClient.init),

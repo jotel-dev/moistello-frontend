@@ -1,4 +1,4 @@
-"client";
+"use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -136,8 +136,8 @@ function NotificationItem({
         aria-checked={selected}
         aria-label={
           selected
-            ? `${t("notifications.deselectNotification").replace("{title}", notification.title)}`
-            : `${t("notifications.selectNotification").replace("{title}", notification.title)}`
+            ? t("notifications.deselectNotification", "Deselect notification: {title}").replace("{title}", notification.title)
+            : t("notifications.selectNotification", "Select notification: {title}").replace("{title}", notification.title)
         }
         onClick={(e) => {
           e.stopPropagation();
@@ -227,15 +227,12 @@ export default function NotificationsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
-    let res = filterNotifications(notifications, typeFilter);
-    if (activeTab === "unread") {
-      res = res.filter((n) => !n.isRead);
-    }
+    const res = filterNotifications(notifications, activeTab as "all" | "unread", typeFilter);
     return res;
   }, [notifications, typeFilter, activeTab]);
 
   const largeList = filtered.length > STAGGER_CHILDREN_LIMIT;
-  const listMotion = useListMotion(largeList);
+  const listMotion = useListMotion(filtered.length);
 
   const handleToggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
@@ -311,7 +308,7 @@ export default function NotificationsPage() {
           description={t("notifications.description")}
         />
         <div className="flex items-center gap-3">
-          <LiveIndicator isLive={wsState.isConnected} label={wsState.status} />
+          <LiveIndicator connectionState={wsState.connectionState} />
           <Link href="/notifications/archive">
             <Button variant="outline" size="sm" leftIcon={<Archive className="h-4 w-4" />}>
               {t("notifications.archive")}
@@ -329,7 +326,7 @@ export default function NotificationsPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="all">{t("common.all")}</TabsTrigger>
             <TabsTrigger value="unread">

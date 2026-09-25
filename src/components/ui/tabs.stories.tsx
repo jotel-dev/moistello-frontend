@@ -21,7 +21,7 @@ type Story = StoryObj<typeof Tabs>;
 
 export const Default: Story = {
   render: (args) => (
-    <Tabs {...args}>
+    <Tabs defaultValue="accounts" {...args}>
       <TabsList>
         <TabsTrigger value="accounts">Accounts</TabsTrigger>
         <TabsTrigger value="payment">Payment</TabsTrigger>

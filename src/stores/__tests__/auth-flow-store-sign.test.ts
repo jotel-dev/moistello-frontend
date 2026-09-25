@@ -66,7 +66,7 @@ function resetStore() {
 describe("AuthFlowStore - signAndSubmit", () => {
   beforeEach(() => {
     resetStore()
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it("persists auth flow state in localStorage so other tabs can receive storage events", () => {

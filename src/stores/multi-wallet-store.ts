@@ -41,6 +41,7 @@ interface MultiWalletState {
   /* UI-only state */
   connectingWalletId: WalletId | null;
   isSelectorOpen: boolean;
+  wc2QrExpiresAt?: number | null;
 
   /* Route-specific error isolation for enterprise-grade UX */
   loginError: string | null;

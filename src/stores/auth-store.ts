@@ -148,24 +148,28 @@ async function getStoredUserAsync(): Promise<User | null> {
   }
 }
 
-async function setStoredUser(user: User): Promise<void> {
-  if (typeof window === "undefined") return;
+function setStoredUser(user: User): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
   // Defer the write until the HMAC key is ready — persisting with an empty
   // key would silently break tamper detection on the first write.
-  withHmacKey(async () => {
-    try {
-      const hmac = computeHmacSha256Sync(JSON.stringify(user));
-      const store: UserStoreWithHmac = { user, hmac };
+  return new Promise<void>((resolve) => {
+    withHmacKey(async () => {
+      try {
+        const hmac = computeHmacSha256Sync(JSON.stringify(user));
+        const store: UserStoreWithHmac = { user, hmac };
 
-      // Encrypt user profile with device-specific passphrase
-      const passphrase = getUserEncryptionPassphrase();
-      await encryptToStorage(USER_DATA_KEY, store, passphrase).catch(() => {
-        // Fallback to unencrypted if encryption fails
-        localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
-      });
-    } catch (e) {
-      console.warn("[auth] Failed to persist user data:", e);
-    }
+        // Encrypt user profile with device-specific passphrase
+        const passphrase = getUserEncryptionPassphrase();
+        await encryptToStorage(USER_DATA_KEY, store, passphrase).catch(() => {
+          // Fallback to unencrypted if encryption fails
+          localStorage.setItem(USER_DATA_KEY, JSON.stringify(store));
+        });
+      } catch (e) {
+        console.warn("[auth] Failed to persist user data:", e);
+      } finally {
+        resolve();
+      }
+    });
   });
 }
 
@@ -253,6 +257,7 @@ interface AuthActions {
   /** Refreshes the cached profile without touching the session. */
   updateUser: (user: User) => void;
   clearTokens: () => Promise<void>;
+  login: (token: string, user?: any) => Promise<void>;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -334,7 +339,7 @@ const baseStore = (
       const currentToken = getAccessToken() ?? token;
       const updatedExp = extractTokenExpiry(currentToken);
 
-      setStoredUser(data.user);
+      await setStoredUser(data.user);
 
       set({
         isAuthenticated: true,
@@ -352,7 +357,7 @@ const baseStore = (
   setTokens: async (accessToken: string, refreshToken: string, user?: User) => {
     setAccessToken(accessToken);
     const exp = extractTokenExpiry(accessToken);
-    if (user) setStoredUser(user);
+    if (user) await setStoredUser(user);
 
     set({
       token: accessToken,
@@ -375,6 +380,10 @@ const baseStore = (
     purgeLegacyTokenStorage();
     set({ token: null, tokenExpiresAt: null });
     await clearSession();
+  },
+
+  login: async (token: string, user?: any) => {
+    await get().setTokens(token, token, user as User | undefined);
   },
 });
 

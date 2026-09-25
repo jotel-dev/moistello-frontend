@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { POST, _resetClaimNameState } from "./route";
+import { POST } from "./route";
+import { _resetClaimNameState } from "./state";
 
 describe("POST /api/claim-name", () => {
   beforeEach(() => {

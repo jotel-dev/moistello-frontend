@@ -229,6 +229,7 @@ export function useContribute(circleId: string) {
         status: "pending",
         onTime: true,
         submittedAt: new Date().toISOString(),
+        contributions: [],
       };
       qc.setQueryData<CircleRound[]>(roundsKey, [...currentRounds, newRound]);
     },
@@ -247,5 +248,37 @@ export function useContribute(circleId: string) {
         description: extractErrorMessage(err, "Could not record contribution. Please try again."),
       });
     },
+  });
+}
+
+export function useCircleMembers(circleId: string) {
+  return useQuery({
+    queryKey: queryKeys.circles.members(circleId),
+    queryFn: async () => {
+      const response = await get<ApiResponse<{ members: CircleMember[] }>>(
+        `/circles/${circleId}/members`
+      );
+      return response.data?.members ?? [];
+    },
+    enabled: !!circleId,
+  });
+}
+
+export function useCircleRounds(circleId: string) {
+  return useQuery({
+    queryKey: queryKeys.circles.rounds(circleId),
+    queryFn: async () => {
+      const response = await get<
+        ApiResponse<{
+          rounds: CircleRound[]
+          currentRound: number
+          totalMembers: number
+        }>
+      >(
+        `/circles/${circleId}/rounds`
+      );
+      return response.data?.rounds ?? [];
+    },
+    enabled: !!circleId,
   });
 }

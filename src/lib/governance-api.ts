@@ -1,4 +1,4 @@
-import { get } from "@/lib/api-client"
+import { get, post } from "@/lib/api-client"
 
 export type ProposalStatus = "active" | "passed" | "defeated" | "draft" | "all"
 
@@ -104,12 +104,18 @@ export async function getProposal(id: string) {
   return MOCK_GOVERNANCE_PROPOSALS.find((p) => p.id === id) || MOCK_GOVERNANCE_PROPOSALS[0]
 }
 
-export function createProposal(input: {
+export async function createProposal(input: {
   title: string
   description: string
   executionPayload: string
   category?: string
 }) {
+  try {
+    await post("/governance/proposals", input)
+  } catch {
+    // API mock fallback
+  }
+
   const newProp: GovernanceProposal = {
     id: `prop_${Date.now().toString().slice(-4)}`,
     title: input.title,
@@ -124,15 +130,20 @@ export function createProposal(input: {
     executionPayload: input.executionPayload,
   }
   MOCK_GOVERNANCE_PROPOSALS.unshift(newProp)
-  return Promise.resolve(newProp)
+  return newProp
 }
 
-export function voteOnProposal(id: string, support: boolean | "abstain", reason?: string) {
+export async function voteOnProposal(id: string, support: boolean | "abstain", reason?: string) {
+  try {
+    await post(`/governance/proposals/${id}/votes`, { support, ...(reason ? { reason } : {}) })
+  } catch {
+    // API mock fallback
+  }
   const prop = MOCK_GOVERNANCE_PROPOSALS.find((p) => p.id === id)
   if (prop) {
     if (support === true) prop.votesFor += 1
     else if (support === false) prop.votesAgainst += 1
     else if (support === "abstain") prop.votesAbstain = (prop.votesAbstain || 0) + 1
   }
-  return Promise.resolve({ success: true, proposal: prop })
+  return { success: true, proposal: prop }
 }

@@ -1,6 +1,6 @@
 export type WalletId = string
 export type WalletCategory = "extension" | "mobile" | "hardware" | "passkey" | "import"
-export type NetworkType = "testnet" | "mainnet"
+export type NetworkType = "testnet" | "mainnet" | "public"
 
 export interface WalletMeta {
   id: WalletId
@@ -13,10 +13,19 @@ export interface WalletMeta {
   isAvailable: () => boolean
 }
 
+export type WalletAdapterMeta = WalletMeta
+
+export interface ConnectOptions {
+  email?: string
+  network?: NetworkType
+  onUri?: (uri: string) => void
+  [key: string]: unknown
+}
+
 export interface WalletAdapter {
   meta: WalletMeta
 
-  connect(email?: string): Promise<{ publicKey: string }>
+  connect(options?: string | ConnectOptions): Promise<{ publicKey: string }>
   disconnect(): Promise<void>
   isConnected(): Promise<boolean>
 

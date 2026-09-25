@@ -22,14 +22,14 @@ type Story = StoryObj<typeof OTPInput>;
 export const Empty: Story = {
   render: (args) => {
     const [value, setValue] = useState("");
-    return <OTPInput {...args} value={value} onChange={setValue} />;
+    return <OTPInput label="Verification Code" {...args} value={value} onChange={setValue} />;
   },
 };
 
 export const PartiallyFilled: Story = {
   render: (args) => {
     const [value, setValue] = useState("12");
-    return <OTPInput {...args} value={value} onChange={setValue} />;
+    return <OTPInput label="Verification Code" {...args} value={value} onChange={setValue} />;
   },
 };
 
@@ -37,6 +37,6 @@ export const WithError: Story = {
   args: { error: "Code is incorrect" },
   render: (args) => {
     const [value, setValue] = useState("112233");
-    return <OTPInput {...args} value={value} onChange={setValue} />;
+    return <OTPInput label="Verification Code" {...args} value={value} onChange={setValue} />;
   },
 };

@@ -82,7 +82,7 @@ export function buildContributionsCSV(
     .filter((c) => inDateRange(c.createdAt, dateFrom, dateTo))
     .map((c) => {
       const row = cols.map((col) => {
-        const val = (c as Record<string, unknown>)[col.key]
+        const val = (c as unknown as Record<string, unknown>)[col.key]
         return escapeCSV(val)
       })
       return row.join(",")
@@ -105,7 +105,7 @@ export function buildPayoutsCSV(
     .filter((p) => inDateRange(p.createdAt, dateFrom, dateTo))
     .map((p) => {
       const row = cols.map((col) => {
-        const val = (p as Record<string, unknown>)[col.key]
+        const val = (p as unknown as Record<string, unknown>)[col.key]
         return escapeCSV(val)
       })
       return row.join(",")
@@ -124,7 +124,7 @@ export function buildMembersCSV(
   const header = cols.map((c) => escapeCSV(c.label)).join(",")
   const rows = members.map((m) => {
     const row = cols.map((col) => {
-      const val = (m as Record<string, unknown>)[col.key]
+      const val = (m as unknown as Record<string, unknown>)[col.key]
       return escapeCSV(val)
     })
     return row.join(",")

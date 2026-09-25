@@ -54,13 +54,13 @@ export function UpcomingPayoutsWidget({
         <EmptyState
           icon={<AlertCircle className="h-5 w-5 text-destructive" />}
           title="Failed to load payouts"
-          description="Could not retrieve scheduled upcoming payouts right now."
+          description="Failed to load upcoming payouts. Could not retrieve scheduled upcoming payouts right now."
         />
       ) : payouts.length === 0 ? (
         <div className="py-8 text-center space-y-2">
           <Calendar className="h-7 w-7 text-muted-foreground mx-auto" />
           <p className="text-xs text-muted-foreground font-body">No scheduled upcoming payouts</p>
-          <p className="text-2xs text-muted-foreground">Your next circle payout dates will appear here</p>
+          <p className="text-2xs text-muted-foreground">No upcoming payouts scheduled. Your next circle payout dates will appear here</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -79,7 +79,7 @@ export function UpcomingPayoutsWidget({
                     {circle ? circle.name : `Circle #${payout.circleId}`}
                   </p>
                   <p className="text-2xs text-muted-foreground">
-                    Round {payout.roundNumber} • {formatDate(payout.createdAt)}
+                    <span>{`Round ${payout.roundNumber}`}</span> • {formatDate(payout.createdAt)}
                   </p>
                 </div>
                 <span className="text-xs font-bold gradient-text">

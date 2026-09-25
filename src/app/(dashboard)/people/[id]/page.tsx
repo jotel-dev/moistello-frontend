@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { CopyButton } from "@/components/shared/copy-button"
-import { MOCK_PEOPLE } from "../page"
+import { MOCK_PEOPLE } from "../data"
 
 export default function PersonProfilePage() {
   const { id } = useParams<{ id: string }>()

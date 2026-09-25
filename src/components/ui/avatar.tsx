@@ -32,7 +32,8 @@ const dotSizes = {
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
   alt?: string;
-  fallback: string;
+  fallback?: string;
+  name?: string;
   size?: keyof typeof sizeClasses;
   online?: boolean;
 }
@@ -40,7 +41,8 @@ export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Avatar({
   src,
   alt = "",
-  fallback,
+  fallback = "",
+  name,
   size = "md",
   online,
   className,
@@ -48,7 +50,8 @@ export function Avatar({
 }: AvatarProps) {
   const [hasError, setHasError] = useState(false);
   const showFallback = !src || hasError;
-  const initials = fallback
+  const rawFallback = fallback || name || "?";
+  const initials = rawFallback
     .split(/\s+/)
     .map((w) => w[0])
     .join("")

@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -119,15 +121,15 @@ function WalletTransferContent() {
     setIsSubmitting(true)
     setError(null)
     try {
-      const res = await post("/api/wallet/transfer", {
+      const res = await post<{ txnHash?: string }>("/api/wallet/transfer", {
         recipient,
         amount: parseFloat(amount),
         currency,
         memo,
       })
-      setTxnHash(res.txnHash || "tx_mock_hash_stellar")
+      setTxnHash(res?.txnHash || "tx_mock_hash_stellar")
       setStep("success")
-      addToast("Transfer completed successfully", "success")
+      addToast({ title: "Transfer completed successfully", type: "success" })
     } catch (err: any) {
       setError(err?.message || "Transfer failed. Please try again.")
       setStep("form")

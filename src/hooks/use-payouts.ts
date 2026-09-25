@@ -15,6 +15,7 @@ interface PayoutFilters {
   payoutType?: string;
   dateFrom?: string;
   dateTo?: string;
+  refetchInterval?: number | false;
 }
 
 interface CreatePayoutPayload {
@@ -28,6 +29,7 @@ interface CreatePayoutPayload {
 export function usePayouts(filters?: PayoutFilters) {
   return useQuery({
     queryKey: ["payouts", filters ?? {}],
+    refetchInterval: filters?.refetchInterval,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters?.page) params.set("page", String(filters.page));
@@ -53,7 +55,7 @@ export function usePayouts(filters?: PayoutFilters) {
           page: filters?.page ?? 1,
           limit: filters?.limit ?? 20,
           total: payouts.length,
-          totalPages: 1,
+          totalPages: payouts.length > 0 ? Math.ceil(payouts.length / (filters?.limit ?? 20)) : 0,
         },
       };
     },
@@ -65,7 +67,8 @@ export function useCirclePayouts(circleId: string, filters?: Omit<PayoutFilters,
     queryKey: ["circle-payouts", circleId, filters ?? {}],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (filters?.page) params.set("page", String(filters.page));
+      const page = filters?.page ?? (filters?.limit !== undefined ? 1 : undefined);
+      if (page !== undefined) params.set("page", String(page));
       if (filters?.limit) params.set("limit", String(filters.limit));
       if (filters?.sortBy) params.set("sortBy", filters.sortBy);
       if (filters?.sortDir) params.set("sortDir", filters.sortDir);
@@ -85,7 +88,7 @@ export function useCirclePayouts(circleId: string, filters?: Omit<PayoutFilters,
           page: filters?.page ?? 1,
           limit: filters?.limit ?? 20,
           total: payouts.length,
-          totalPages: 1,
+          totalPages: payouts.length > 0 ? Math.ceil(payouts.length / (filters?.limit ?? 20)) : 0,
         },
       };
     },

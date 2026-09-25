@@ -98,4 +98,64 @@ declare module "@walletconnect/sign-client" {
   }
 }
 
+declare module "@axe-core/playwright" {
+  export default class AxeBuilder {
+    constructor(args: { page: unknown })
+    withTags(tags: string[]): this
+    analyze(): Promise<{ violations: unknown[] }>
+  }
+}
+
+declare module "@storybook/react" {
+  export type Meta<T = any> = any
+  export type StoryObj<T = any> = {
+    render?: (args: any) => any
+    args?: Record<string, any>
+    [key: string]: any
+  }
+}
+
+declare module "react-hook-form" {
+  export type FieldValues = Record<string, any>
+  export type FieldError = { type: string; message?: string }
+  export type Resolver<TFieldValues extends FieldValues = FieldValues, TContext = any> = (
+    values: any,
+    context?: TContext,
+    options?: any,
+  ) => Promise<{ values: any; errors: Record<string, any> }> | { values: any; errors: Record<string, any> }
+  export interface UseFormRegisterReturn {
+    name: string
+    onChange: (e: any) => Promise<boolean | void>
+    onBlur: (e: any) => Promise<boolean | void>
+    ref: (instance: any) => void
+  }
+  export type UseFormRegister<TFieldValues extends FieldValues> = (
+    name: any,
+    options?: any,
+  ) => UseFormRegisterReturn
+  export type UseFormHandleSubmit<TFieldValues extends FieldValues> = (
+    onValid: (data: TFieldValues, event?: any) => unknown,
+    onInvalid?: (errors: any, event?: any) => unknown,
+  ) => (e?: any) => Promise<void>
+  export interface UseFormReturn<TFieldValues extends FieldValues = FieldValues, TContext = any> {
+    register: UseFormRegister<TFieldValues>
+    handleSubmit: UseFormHandleSubmit<TFieldValues>
+    formState: {
+      errors: Record<string, any>
+      isSubmitting: boolean
+      isValid: boolean
+      [key: string]: any
+    }
+    reset: (values?: any) => void
+    setValue: (name: any, value: any, options?: any) => void
+    getValues: (name?: any) => any
+    watch: (name?: any, defaultValue?: any) => any
+    [key: string]: any
+  }
+  export function useForm<TFieldValues extends FieldValues = FieldValues, TContext = any>(
+    options?: any,
+  ): UseFormReturn<TFieldValues, TContext>
+}
+
+
 

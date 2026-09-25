@@ -14,6 +14,7 @@ interface ContributionFilters {
   sort?: string;
   page?: number;
   limit?: number;
+  refetchInterval?: number | false;
 }
 
 interface CreateContributionPayload {
@@ -25,6 +26,7 @@ interface CreateContributionPayload {
 export function useContributions(filters?: ContributionFilters) {
   return useQuery({
     queryKey: ["contributions", filters ?? {}],
+    refetchInterval: filters?.refetchInterval,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters?.search) params.set("search", filters.search);
@@ -50,7 +52,7 @@ export function useContributions(filters?: ContributionFilters) {
           page: filters?.page ?? 1,
           limit: filters?.limit ?? 20,
           total: contributions.length,
-          totalPages: 1,
+          totalPages: contributions.length > 0 ? Math.ceil(contributions.length / (filters?.limit ?? 20)) : 0,
         },
       };
     },
